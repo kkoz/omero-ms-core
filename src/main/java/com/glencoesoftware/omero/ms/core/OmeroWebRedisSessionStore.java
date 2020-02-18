@@ -22,19 +22,19 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.concurrent.CompletionStage;
 
-import org.python.core.Py;
-import org.python.core.PyDictionary;
-import org.python.core.util.StringUtil;
-import org.python.modules.cPickle;
 import org.slf4j.LoggerFactory;
+
+import com.glencoesoftware.omero.ms.core.PythonPickle.Op;
 
 import brave.ScopedSpan;
 import brave.Tracing;
+import io.kaitai.struct.ByteBufferKaitaiStream;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.codec.ByteArrayCodec;
+
 
 /**
  * A Redis backed OMERO.web session store. Based on a provided session key,
@@ -89,10 +89,13 @@ public class OmeroWebRedisSessionStore implements OmeroWebSessionStore {
         return future.<IConnector>thenApply(value -> {
             try {
                 if (value != null) {
-                    PyDictionary djangoSession =
+                    return new PickledSessionConnector(value);
+                    /*
+                                        PyDictionary djangoSession =
                             (PyDictionary) cPickle.loads(
                                     Py.newString(StringUtil.fromBytes(value)));
                     return (IConnector) djangoSession.get("connector");
+                    */
                 }
             } catch (Exception e) {
                 log.error("Exception while unpickling connector", e);
