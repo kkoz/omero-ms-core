@@ -22,8 +22,10 @@ import java.io.IOException;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CompletableFuture;
 import java.util.List;
+import java.util.Arrays;
 import java.util.Base64;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.LoggerFactory;
 
 import brave.ScopedSpan;
@@ -74,20 +76,15 @@ public class OmeroWebJDBCSessionStore implements OmeroWebSessionStore{
      * @return The connector from the session data
      * @since 3.3
      */
-    private IConnector getConnectorFromSessionData(String sessionData) {
-        if (sessionData == null) {
+    private IConnector getConnectorFromSessionData(String sessionDataStr) {
+        if (sessionDataStr == null) {
             return null;
         }
-        /*
-        String decodedSessionData =
-            StringUtil.fromBytes(Base64.getDecoder().decode(sessionData));
-        PyString pystring = Py.newString(decodedSessionData);
-        PyList hash_and_data = pystring.split(":", 1);
-        PyString data_str = new PyString((String) hash_and_data.get(1));
-        PyDictionary djangoSession =
-            (PyDictionary) cPickle.loads(data_str);
-            */
-        return new PickledSessionConnector(sessionData.getBytes());
+        byte[] b64bytes = Base64.getDecoder().decode(sessionDataStr);
+        int idx = ArrayUtils.indexOf(b64bytes, (byte)':');
+        byte[] sessionData = Arrays.copyOfRange(b64bytes, idx + 1, b64bytes.length);
+        log.info("Getting DB pickled session");
+        return new PickledSessionConnector(sessionData);
     }
 
     /* (non-Javadoc)

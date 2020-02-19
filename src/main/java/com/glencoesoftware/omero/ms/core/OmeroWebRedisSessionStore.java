@@ -89,13 +89,8 @@ public class OmeroWebRedisSessionStore implements OmeroWebSessionStore {
         return future.<IConnector>thenApply(value -> {
             try {
                 if (value != null) {
+                    log.info("Getting connector for Redis");
                     return new PickledSessionConnector(value);
-                    /*
-                                        PyDictionary djangoSession =
-                            (PyDictionary) cPickle.loads(
-                                    Py.newString(StringUtil.fromBytes(value)));
-                    return (IConnector) djangoSession.get("connector");
-                    */
                 }
             } catch (Exception e) {
                 log.error("Exception while unpickling connector", e);
